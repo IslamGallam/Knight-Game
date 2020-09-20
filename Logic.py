@@ -20,6 +20,7 @@ class GameEngine:
             self.subscribers.remove(obj)
 
     def notify(self, message):
+        print(message)
         for i in self.subscribers:
             i.update(message)
 
@@ -29,9 +30,14 @@ class GameEngine:
 
     def interact(self):
         for obj in self.objects:
+            if self.hero == None:
+                return
             if list(obj.position) == self.hero.position:
-                self.delete_object(obj)
                 obj.interact(self, self.hero)
+
+    def hero_died(self):
+        self.hero.sprite = None
+        self.notify("You are dead! Press R to restart.")        
 
     # MOVEMENT
     def move_up(self):

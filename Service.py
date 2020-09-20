@@ -21,7 +21,6 @@ def reload_game(engine, hero):
     global level_list
     level_list_max = len(level_list) - 1
     engine.level += 1
-    print(engine.level)
     hero.position = [1, 1]
     engine.objects = []
     generator = level_list[min(engine.level, level_list_max)]
@@ -42,12 +41,16 @@ def apply_blessing(engine, hero):
         engine.score += 0.2
         hero.gold -= int(20 * 1.5**engine.level) - \
             2 * hero.stats["intelligence"]
-        if random.randint(0, 1) == 0:
+        r = random.randint(0, 2)
+        if  r == 0:
             engine.hero = Objects.Blessing(hero)
             engine.notify("Blessing applied")
-        else:
+        elif r == 1:
             engine.hero = Objects.Berserk(hero)
             engine.notify("Berserk applied")
+        else:
+            engine.hero = Objects.EvilEye(hero)
+            engine.notify("You got the Evil Eye")
     else:
         engine.score -= 0.1
 
@@ -80,7 +83,7 @@ class MapFactory(yaml.YAMLObject):
         _map = cls.Map()
         _obj = cls.Objects()
         config = loader.construct_mapping(node)
-        _obj.objects = config
+        _obj.cnf = config
         return {'map': _map, 'obj': _obj}
 
 
@@ -132,13 +135,13 @@ class RandomMap(MapFactory):
                     else:
                         self.Map[j][i] = [wall, floor1, floor2, floor3, floor1,
                                           floor2, floor3, floor1, floor2][random.randint(0, 8)]
-            #print(self.Map)
         def get_map(self):
             return self.Map
 
     class Objects:
 
         def __init__(self):
+            self.cnf = {}
             self.objects = []
 
         def get_objects(self, _map):
@@ -162,7 +165,7 @@ class RandomMap(MapFactory):
                                          random.randint(1, 39))
 
                     self.objects.append(Objects.Ally(
-                        prop['sprite'], prop['action'], coord))
+                        prop['sprite'], prop['action'], coord, size, 0))
 
             for obj_name in object_list_prob['ally']:
                 prop = object_list_prob['ally'][obj_name]
@@ -182,7 +185,7 @@ class RandomMap(MapFactory):
                                 coord = (random.randint(1, 39),
                                          random.randint(1, 39))
                     self.objects.append(Objects.Ally(
-                        prop['sprite'], prop['action'], coord))
+                        prop['sprite'], prop['action'], coord, size, 1))
 
             for obj_name in object_list_prob['enemies']:
                 prop = object_list_prob['enemies'][obj_name]
@@ -203,13 +206,10 @@ class RandomMap(MapFactory):
                                          random.randint(1, 39))
 
                     self.objects.append(Objects.Enemy(
-                        prop['sprite'], prop, prop['experience'], coord))
+                        prop['sprite'], prop, prop['experience'], coord, size))
 
             return self.objects
 
-
-# FIXME
-# add classes for YAML !empty_map and !special_map{} 
 
 class EmptyMap(MapFactory):
     yaml_tag = "!empty_map"
@@ -223,15 +223,19 @@ class EmptyMap(MapFactory):
                         self.Map[j][i] = wall
                     else:
                         self.Map[j][i] = floor1
-
         def get_map(self):
             return self.Map
 
     class Objects:
         def __init__(self):
+            self.cnf = {}
             self.objects = []
 
         def get_objects(self, _map):
+            x = 3
+            y = 3
+            stairs = object_list_prob['objects']['stairs']
+            self.objects.append(Objects.Ally(stairs['sprite'], stairs['action'], [x, y], size, 0))
             return self.objects
 
 class SpecialMap(MapFactory):
@@ -245,16 +249,81 @@ class SpecialMap(MapFactory):
                     if i == 0 or j == 0 or i == 40 or j == 40:
                         self.Map[j][i] = wall
                     else:
-                        self.Map[j][i] = floor1
+                        self.Map[j][i] = [wall, floor1, floor2, floor3, floor1,
+                                          floor2, floor3, floor1, floor2][random.randint(0, 8)]
 
         def get_map(self):
             return self.Map
 
     class Objects:
         def __init__(self):
+            self.cnf = {}
             self.objects = []
 
         def get_objects(self, _map):
+            for obj_name in object_list_prob['objects']:
+                prop = object_list_prob['objects'][obj_name]
+                for i in range(random.randint(prop['min-count'], prop['max-count'])):
+                    coord = (random.randint(1, 39), random.randint(1, 39))
+                    intersect = True
+                    while intersect:
+                        intersect = False
+                        if _map[coord[1]][coord[0]] == wall:
+                            intersect = True
+                            coord = (random.randint(1, 39),
+                                     random.randint(1, 39))
+                            continue
+                        for obj in self.objects:
+                            if coord == obj.position or coord == (1, 1):
+                                intersect = True
+                                coord = (random.randint(1, 39),
+                                         random.randint(1, 39))
+
+                    self.objects.append(Objects.Ally(
+                        prop['sprite'], prop['action'], coord, size, 0))
+
+            for obj_name in object_list_prob['ally']:
+                prop = object_list_prob['ally'][obj_name]
+                for i in range(random.randint(prop['min-count'], prop['max-count'])):
+                    coord = (random.randint(1, 39), random.randint(1, 39))
+                    intersect = True
+                    while intersect:
+                        intersect = False
+                        if _map[coord[1]][coord[0]] == wall:
+                            intersect = True
+                            coord = (random.randint(1, 39),
+                                     random.randint(1, 39))
+                            continue
+                        for obj in self.objects:
+                            if coord == obj.position or coord == (1, 1):
+                                intersect = True
+                                coord = (random.randint(1, 39),
+                                         random.randint(1, 39))
+                    self.objects.append(Objects.Ally(
+                        prop['sprite'], prop['action'], coord, size, 1))
+
+            for obj_name in object_list_prob['enemies']:
+                prop = object_list_prob['enemies'][obj_name]
+                if obj_name not in self.cnf:
+                    continue
+                for i in range(self.cnf[obj_name]):
+                    coord = (random.randint(1, 30), random.randint(1, 22))
+                    intersect = True
+                    while intersect:
+                        intersect = False
+                        if _map[coord[1]][coord[0]] == wall:
+                            intersect = True
+                            coord = (random.randint(1, 39),
+                                     random.randint(1, 39))
+                            continue
+                        for obj in self.objects:
+                            if coord == obj.position or coord == (1, 1):
+                                intersect = True
+                                coord = (random.randint(1, 39),
+                                         random.randint(1, 39))
+
+                    self.objects.append(Objects.Enemy(
+                        prop['sprite'], prop, prop['experience'], coord, size))
             return self.objects
 
 
@@ -265,13 +334,13 @@ floor3 = [0]
 
 
 def service_init(sprite_size, full=True):
-    global object_list_prob, level_list
+    global object_list_prob, level_list, size
 
     global wall
     global floor1
     global floor2
     global floor3
-
+    size = sprite_size
     wall[0] = create_sprite(os.path.join("texture", "wall.png"), sprite_size)
     floor1[0] = create_sprite(os.path.join("texture", "Ground_1.png"), sprite_size)
     floor2[0] = create_sprite(os.path.join("texture", "Ground_2.png"), sprite_size)

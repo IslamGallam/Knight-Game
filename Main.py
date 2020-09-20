@@ -1,6 +1,7 @@
 import pygame
 import os
 import Objects
+import random
 import ScreenEngine
 import Logic
 import Service
@@ -18,8 +19,8 @@ if not KEYBOARD_CONTROL:
     answer = np.zeros(4, dtype=float)
 
 base_stats = {
-    "strength": 20,
-    "endurance": 20,
+    "strength": 15,
+    "endurance": 15,
     "intelligence": 5,
     "luck": 5
 }
@@ -37,10 +38,11 @@ def create_game(sprite_size, is_new):
         drawer = ScreenEngine.GameSurface((640, 480), pygame.SRCALPHA, (0, 480),
                                 ScreenEngine.ProgressBar((640, 120), (640, 0),
                                                ScreenEngine.InfoWindow((160, 600), (50, 50),
-                                                             ScreenEngine.HelpWindow((700, 500), pygame.SRCALPHA, (0, 0),
-                                                                           ScreenEngine.ScreenHandle(
+                                                             ScreenEngine.HelpWindow((700, 500), pygame.SRCALPHA, (640, 440),
+                                                                           ScreenEngine.MiniMap((160, 160), (0, 0),
+                                                                                ScreenEngine.ScreenHandle(
                                                                                (0, 0))
-                                                                           ))))
+                                                                           )))))
 
     else:
         engine.sprite_size = sprite_size
@@ -48,7 +50,7 @@ def create_game(sprite_size, is_new):
         hero.sprite = Service.create_sprite(
             os.path.join("texture", "Hero.png"), sprite_size)
         Service.service_init(sprite_size, False)
-
+    
     Logic.GameEngine.sprite_size = sprite_size
     drawer.connect_engine(engine)
     iteration = 0
@@ -76,7 +78,7 @@ while engine.working:
                     create_game(size, True)
                 if event.key == pygame.K_ESCAPE:
                     engine.working = False
-                if engine.game_process:
+                if engine.game_process and engine.hero.sprite != None:
                     if event.key == pygame.K_UP:
                         engine.move_up()
                         iteration += 1
@@ -112,6 +114,7 @@ while engine.working:
         else:
             create_game()
 
+    # move_objects()
     gameDisplay.blit(drawer, (0, 0))
     drawer.draw(gameDisplay)
 

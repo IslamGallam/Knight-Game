@@ -8,4 +8,5 @@ levels:
   - !special_map
     rat: 10
     knight: 10
+    zombie: 5
   - !random_map {}

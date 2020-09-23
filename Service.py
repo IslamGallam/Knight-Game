@@ -63,6 +63,17 @@ def remove_effect(engine, hero):
         engine.hero.calc_max_HP()
         engine.notify("Effect removed")
 
+def ultra(engine, hero):
+    r = random.randint(0, 100)
+    if hero.stats['luck'] == 0:
+        return
+    if r / hero.stats['luck'] >= 10:
+        hero.stats["strength"] += 10
+        hero.stats["endurance"] += 10
+        hero.stats["luck"] += 10
+        hero.stats["intelligence"] += 10
+        engine.notify("Ultra blessing!")
+
 
 def add_gold(engine, hero):
     if random.randint(1, 10) == 1:
@@ -356,7 +367,8 @@ def service_init(sprite_size, full=True):
                            'add_gold': add_gold,
                            'apply_blessing': apply_blessing,
                            'remove_effect': remove_effect,
-                           'restore_hp': restore_hp}
+                           'restore_hp': restore_hp,
+                           'ultra' : ultra}
 
     for obj in object_list_prob['objects']:
         prop = object_list_prob['objects'][obj]

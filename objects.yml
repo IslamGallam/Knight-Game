@@ -25,6 +25,11 @@ ally:
     action: restore_hp
     min-count: 0
     max-count: 3
+  ultra:
+    sprite: [NPC_4.png]
+    action: ultra
+    min-count: 0
+    max-count: 1
 enemies:
   rat:
     sprite: [rat.png]
@@ -47,6 +52,13 @@ enemies:
     intelligence: 25
     luck: 10
     experience: 500
+  zombie:
+    sprite: [zombie.png]
+    strength: 30
+    endurance: 30
+    intelligence: 30
+    luck: 3
+    experience: 700
   dragon:
     sprite: [dragon.png]
     strength: 50

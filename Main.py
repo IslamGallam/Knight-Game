@@ -34,10 +34,9 @@ def create_game(sprite_size, is_new):
         engine = Logic.GameEngine()
         Service.service_init(sprite_size)
         Service.reload_game(engine, hero)
-        # with ScreenEngine.ScreenEngine() as SE:
         drawer = ScreenEngine.GameSurface((640, 480), pygame.SRCALPHA, (0, 480),
                                 ScreenEngine.ProgressBar((640, 120), (640, 0),
-                                               ScreenEngine.InfoWindow((160, 600), (50, 50),
+                                               ScreenEngine.InfoWindow((160, 440), (50, 50),
                                                              ScreenEngine.HelpWindow((700, 500), pygame.SRCALPHA, (640, 440),
                                                                            ScreenEngine.MiniMap((160, 160), (0, 0),
                                                                                 ScreenEngine.ScreenHandle(
@@ -58,7 +57,6 @@ def create_game(sprite_size, is_new):
 
 size = 60
 create_game(size, True)
-print(engine.hero)
 while engine.working:
 
     if KEYBOARD_CONTROL:

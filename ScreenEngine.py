@@ -79,7 +79,6 @@ class GameSurface(ScreenHandle):
         size = self.game_engine.sprite_size
         min_x = self.calc_mn()[0]
         min_y = self.calc_mn()[1]
-        print("here")
 
         self.blit(sprite, ((coord[0] - min_x) * self.game_engine.sprite_size,
                            (coord[1] - min_y) * self.game_engine.sprite_size))
@@ -175,6 +174,8 @@ class InfoWindow(ScreenHandle):
 
     def update(self, value):
         self.data.append(f"> {str(value)}")
+        if 20 + (len(self.data) - 1) * 18 + 10 >= 440:
+            self.data.popleft()
 
     def draw(self, canvas):
         self.fill(colors["wooden"])
